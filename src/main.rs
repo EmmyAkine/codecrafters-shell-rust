@@ -1,5 +1,8 @@
+pub mod test;
+
 #[allow(unused_imports)]
 use std::io::{self, Write};
+use crate::test::printer;
 
 fn main() {
     // TODO: Uncomment the code below to pass the first stage
@@ -11,6 +14,8 @@ fn main() {
         if command.trim() == "exit" {
             break;
         }
-        println!("{}: command not found", command.trim());
+        printer(&command);
     }
 }
+
+
