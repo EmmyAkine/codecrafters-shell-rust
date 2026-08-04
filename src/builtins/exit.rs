@@ -1,13 +1,16 @@
 use crate::builtins::Command;
 
 pub struct ExitCommand{
-    pub name: String
+    name: String
+}
+
+impl ExitCommand {
+    pub fn new(name: String) -> ExitCommand {
+        ExitCommand{name}
+    }
 }
 impl Command for ExitCommand {
-    fn name(&self) -> &str { &self.name }
-    fn set_name(&mut self, new_name: String) {
-        self.name = new_name;
-    }
+    fn get_name_copy(&self) -> String { self.name.clone() }
     fn execute(&self, _args: &[&str]) -> bool {
         false
     }

@@ -1,10 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 #[allow(unused_imports)]
 use std::io;
 use std::io::Write;
 use crate::builtins::Command;
 use crate::builtins::echo::EchoCommand;
 use crate::builtins::exit::ExitCommand;
+use crate::builtins::type_cmd::TypeCommand;
 use crate::command_dispatcher::CommandDispatcher;
 use crate::external_command::ExternalCommand;
 
@@ -19,15 +20,28 @@ impl Shell {
     }
 
     fn build_builtins() -> HashMap<String, Box<dyn Command>> {
-        let mut builtins: HashMap<String, Box<dyn Command>> = HashMap::new();
-        //exit cmd
-        let exit_cmd = ExitCommand{name: "exit".to_string()};
-        builtins.insert(exit_cmd.name.clone(), Box::new(exit_cmd));
-        //echo cmd
-        let echo_cmd = EchoCommand{name: "echo".to_string()};
-        builtins.insert(echo_cmd.name.clone(), Box::new(echo_cmd));
+        let mut builtins_dict: HashMap<String, Box<dyn Command>> = HashMap::new();
+        let mut builtins_list: HashSet<String> = HashSet::new();
         
-        builtins
+        //exit cmd
+        let exit_cmd = ExitCommand::new("exit".to_string());
+        builtins_list.insert(exit_cmd.get_name_copy());
+        builtins_dict.insert(exit_cmd.get_name_copy(), Box::new(exit_cmd));
+        
+        //echo cmd
+        let echo_cmd = EchoCommand::new("echo".to_string());
+        builtins_list.insert(echo_cmd.get_name_copy());
+        builtins_dict.insert(echo_cmd.get_name_copy(), Box::new(echo_cmd));
+        
+        
+        
+        
+        //type cmd --//MUST BE THE LAST
+        builtins_list.insert("type".to_string()); //Manually type out type cmd name
+        let type_cmd = TypeCommand::new("type".to_string(), builtins_list);
+        builtins_dict.insert(type_cmd.get_name_copy(), Box::new(type_cmd));
+
+        builtins_dict
     }
 
     fn run_loop(dispatcher: CommandDispatcher){

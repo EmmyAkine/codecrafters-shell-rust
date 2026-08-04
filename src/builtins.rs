@@ -1,8 +1,8 @@
 pub mod exit;
 pub mod echo;
+pub mod type_cmd;
 
 pub trait Command {
-    fn name(&self) -> &str;
-    fn set_name(&mut self, new_name: String);
+    fn get_name_copy(&self) -> String;
     fn execute(&self, args: &[&str]) -> bool;
 }
