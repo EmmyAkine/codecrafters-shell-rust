@@ -1,4 +1,5 @@
 pub mod exit;
+pub mod echo;
 
 pub trait Command {
     fn name(&self) -> &str;

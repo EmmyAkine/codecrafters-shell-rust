@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Write;
 use crate::builtins::Command;
+use crate::builtins::echo::EchoCommand;
 use crate::builtins::exit::ExitCommand;
 use crate::command_dispatcher::CommandDispatcher;
 use crate::external_command::ExternalCommand;
@@ -19,8 +20,12 @@ impl Shell {
 
     fn build_builtins() -> HashMap<String, Box<dyn Command>> {
         let mut builtins: HashMap<String, Box<dyn Command>> = HashMap::new();
+        //exit cmd
         let exit_cmd = ExitCommand{name: "exit".to_string()};
-        builtins.insert("exit".to_string(), Box::new(exit_cmd));
+        builtins.insert(exit_cmd.name.clone(), Box::new(exit_cmd));
+        //echo cmd
+        let echo_cmd = EchoCommand{name: "echo".to_string()};
+        builtins.insert(echo_cmd.name.clone(), Box::new(echo_cmd));
         
         builtins
     }
