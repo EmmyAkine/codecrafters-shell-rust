@@ -25,6 +25,7 @@ impl ExternalCommand{
         //child.stdout.unwrap().read_to_string(&mut output).expect("failed to read stdout");
         child.stdout.as_mut().unwrap().read_to_string(&mut output).expect("failed to read stdout");
         child.wait().unwrap();
+        let output = output.trim();
         println!("{output}");
 
         true
