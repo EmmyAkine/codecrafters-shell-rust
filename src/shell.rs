@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 #[allow(unused_imports)]
 use std::io;
 use std::io::Write;
+use crate::builtins::cd_cmd::CdCommand;
 use crate::builtins::Command;
 use crate::builtins::echo::EchoCommand;
 use crate::builtins::exit::ExitCommand;
@@ -41,6 +42,10 @@ impl Shell {
         builtins_list.insert(pwd_cmd.get_name_copy());
         builtins_dict.insert(pwd_cmd.get_name_copy(), Box::new(pwd_cmd));
 
+        //cd cmd
+        let cd_cmd = CdCommand::new("cd".to_string());
+        builtins_list.insert(cd_cmd.get_name_copy());
+        builtins_dict.insert(cd_cmd.get_name_copy(), Box::new(cd_cmd));
 
         //type cmd --//MUST BE THE LAST
         builtins_list.insert("type".to_string()); //Manually type out type cmd name

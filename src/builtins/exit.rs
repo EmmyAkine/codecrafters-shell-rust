@@ -1,3 +1,4 @@
+use std::io::Write;
 use crate::builtins::Command;
 
 pub struct ExitCommand{
@@ -11,7 +12,8 @@ impl ExitCommand {
 }
 impl Command for ExitCommand {
     fn get_name_copy(&self) -> String { self.name.clone() }
-    fn execute(&self, _args: &[&str]) -> bool {
+
+    fn execute(&self, _args: &[&str], _stdout: &mut dyn Write, _stderr: &mut dyn Write) -> bool {
         false
     }
 }

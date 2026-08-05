@@ -1,4 +1,5 @@
 use std::env;
+use std::io::Write;
 use crate::builtins::Command;
 
 pub struct PwdCommand {
@@ -15,9 +16,9 @@ impl Command for PwdCommand {
     fn get_name_copy(&self) -> String {
         self.name.clone()
     }
-    fn execute(&self, _args: &[&str]) -> bool {
+    fn execute(&self, _args: &[&str], stdout: &mut dyn Write, _stderr: &mut dyn Write) -> bool {
         let current_dir = env::current_dir().unwrap().to_string_lossy().into_owned();
-        println!("{}", current_dir);
+        writeln!(stdout, "{}", current_dir).unwrap();
         true
     }
 }
