@@ -28,7 +28,7 @@ impl Command for CdCommand {
             _= set_current_dir(path);
         }
         else {
-            writeln!(stderr, "cd {}: No such file or directory", path).unwrap();
+            writeln!(stderr, "cd: {}: No such file or directory", path).unwrap();
         }
         true
     }
