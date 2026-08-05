@@ -5,6 +5,7 @@ use std::io::Write;
 use crate::builtins::Command;
 use crate::builtins::echo::EchoCommand;
 use crate::builtins::exit::ExitCommand;
+use crate::builtins::pwd::PwdCommand;
 use crate::builtins::type_cmd::TypeCommand;
 use crate::command_dispatcher::CommandDispatcher;
 use crate::external_command::ExternalCommand;
@@ -35,7 +36,10 @@ impl Shell {
         builtins_list.insert(echo_cmd.get_name_copy());
         builtins_dict.insert(echo_cmd.get_name_copy(), Box::new(echo_cmd));
 
-
+        //pwd cmd
+        let pwd_cmd = PwdCommand::new("pwd".to_string());
+        builtins_list.insert(pwd_cmd.get_name_copy());
+        builtins_dict.insert(pwd_cmd.get_name_copy(), Box::new(pwd_cmd));
 
 
         //type cmd --//MUST BE THE LAST
