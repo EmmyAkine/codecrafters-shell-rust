@@ -13,7 +13,7 @@ impl EchoCommand{
 impl Command for EchoCommand  {
     fn get_name_copy(&self) -> String{ self.name.clone() }
     fn execute(&self, args: &[&str]) -> bool {
-        print!("{}", args.join(" ").trim());
+        println!("{}", args.join(" ").trim());
         true
     }
 }
