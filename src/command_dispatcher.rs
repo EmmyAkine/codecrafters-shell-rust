@@ -23,6 +23,9 @@ impl CommandDispatcher {
         }
         let command = parts[0];
         let args = &parts[1..];
+        if self.external_command.try_run(&command.to_string(), args) {
+            return true;
+        }
         match self.commands.get(command) {
             Some(command) => command.execute(args),
             None => {

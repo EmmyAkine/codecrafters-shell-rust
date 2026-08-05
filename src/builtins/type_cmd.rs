@@ -1,16 +1,19 @@
 use std::collections::HashSet;
 use crate::builtins::Command;
+use crate::path_resolver::PathResolver;
 
 pub struct TypeCommand{
     name: String,
-    builtins: HashSet<String>
+    builtins: HashSet<String>,
+    resolver: PathResolver,
 }
 
 impl TypeCommand{
-    pub fn new(name: String, builtins: HashSet<String>) -> TypeCommand {
+    pub fn new(name: String, builtins: HashSet<String>, resolver: PathResolver) -> Self {
         TypeCommand{
             name,
-            builtins
+            builtins,
+            resolver
         }
     }
 }
@@ -24,12 +27,18 @@ impl Command for TypeCommand  {
             println!("type: missing argument");
             return true
         }
-        let target = args[0];
-        if self.builtins.contains(target){
+        let target = args[0].to_string();
+        if self.builtins.contains(&target){
             println!("{} is a shell builtin", target);
             return true
         }
-        println!("{}: not found", target);
+
+        if let Some(full_path) = self.resolver.resolve(&target){
+            println!("{} is {}", target, full_path);
+        }
+        else {
+            println!("{}: not found", target);
+        }
         true
     }
 }

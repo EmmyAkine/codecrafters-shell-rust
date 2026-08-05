@@ -5,7 +5,7 @@ pub struct ExitCommand{
 }
 
 impl ExitCommand {
-    pub fn new(name: String) -> ExitCommand {
+    pub fn new(name: String) -> Self {
         ExitCommand{name}
     }
 }

@@ -5,7 +5,7 @@ pub struct EchoCommand{
 }
 
 impl EchoCommand{
-    pub fn new(name: String) -> EchoCommand {
+    pub fn new(name: String) -> Self {
         EchoCommand{name}
     }
 }
