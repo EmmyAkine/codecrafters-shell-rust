@@ -13,14 +13,12 @@ impl ExternalCommand{
     }
 
     pub fn try_run(&self,command: &String, args: &[&str])-> bool{
-        let full_path:String;
-        if let Some(path) = self.resolver.resolve(&command){
-            full_path = path;
+        if let Some(_path) = self.resolver.resolve(&command){
         }
         else {
             return false;
         }
-        let mut child = Command::new(&full_path).args(args).stdout(Stdio::piped()).spawn().expect("failed to execute process");
+        let mut child = Command::new(&command).args(args).stdout(Stdio::piped()).spawn().expect("failed to execute process");
         let mut output = String::new();
         //child.stdout.unwrap().read_to_string(&mut output).expect("failed to read stdout");
         child.stdout.as_mut().unwrap().read_to_string(&mut output).expect("failed to read stdout");
