@@ -6,9 +6,8 @@ pub mod path_resolver;
 pub mod token;
 pub mod tokenizer;
 pub mod redirect;
+pub mod auto_completion;
 
-#[allow(unused_imports)]
-use std::io::{self, Write};
 use shell::Shell;
 
 fn main() {

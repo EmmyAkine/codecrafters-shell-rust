@@ -1,16 +1,16 @@
-use std::collections::{HashMap, HashSet};
-#[allow(unused_imports)]
-use std::io;
-use std::io::Write;
+use crate::auto_completion::Completion;
 use crate::builtins::cd_cmd::CdCommand;
-use crate::builtins::Command;
 use crate::builtins::echo::EchoCommand;
 use crate::builtins::exit::ExitCommand;
 use crate::builtins::pwd::PwdCommand;
 use crate::builtins::type_cmd::TypeCommand;
+use crate::builtins::Command;
 use crate::command_dispatcher::CommandDispatcher;
 use crate::external_command::ExternalCommand;
 use crate::path_resolver::PathResolver;
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
+use std::collections::{HashMap, HashSet};
 
 pub struct Shell{}
 
@@ -19,11 +19,11 @@ impl Shell {
         let path_resolver = PathResolver::new_from_environment();
         let external_commands = ExternalCommand::new(path_resolver.clone());
         let builtins = Self::build_builtins(path_resolver);
-        let dispatcher = CommandDispatcher::new(builtins, external_commands);
-        Self::run_loop(dispatcher);
+        let dispatcher = CommandDispatcher::new(builtins.0, external_commands);
+        Self::run_loop(dispatcher, builtins.1);
     }
 
-    fn build_builtins(resolver: PathResolver) -> HashMap<String, Box<dyn Command>> {
+    fn build_builtins(resolver: PathResolver) -> (HashMap<String, Box<dyn Command>>, Vec<String>) {
         let mut builtins_dict: HashMap<String, Box<dyn Command>> = HashMap::new();
         let mut builtins_list: HashSet<String> = HashSet::new();
 
@@ -49,21 +49,33 @@ impl Shell {
 
         //type cmd --//MUST BE THE LAST
         builtins_list.insert("type".to_string()); //Manually type out type cmd name
-        let type_cmd = TypeCommand::new("type".to_string(), builtins_list, resolver);
+        let type_cmd = TypeCommand::new("type".to_string(), builtins_list.clone(), resolver);
         builtins_dict.insert(type_cmd.get_name_copy(), Box::new(type_cmd));
 
-        builtins_dict
+        (builtins_dict, builtins_list.into_iter().collect())
     }
 
-    fn run_loop(dispatcher: CommandDispatcher){
+    fn run_loop(dispatcher: CommandDispatcher, builtin_commands: Vec<String>) {
+
+        let mut readline = Editor::new().unwrap();
+        readline.set_helper(Some(Completion{builtin_commands}));
         loop {
-            print!("$ ");
-            io::stdout().flush().unwrap();
-            let mut input = String::new();
-            io::stdin().read_line(&mut input).unwrap();
-            let input = input.trim();
-            if !dispatcher.dispatch(&input){
-                break
+            let input = readline.readline("$ ");
+            match input {
+                Ok(input) => {
+                    let input = input.trim();
+                    if !dispatcher.dispatch(&input){
+                        break
+                    }
+                }
+                Err(ReadlineError::Interrupted) => {
+                    println!("^C");
+                }
+                Err(ReadlineError::Eof) => println!("exit"),
+                Err(err) => {
+                    eprintln!("Error: {:?}", err);
+                    break;
+                }
             }
         }
 
