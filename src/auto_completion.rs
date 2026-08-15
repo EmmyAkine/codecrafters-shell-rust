@@ -15,12 +15,13 @@ impl Completer for Completion{
     fn complete(&self, line: &str, _pos: usize, _ctx    : &Context<'_>) -> Result<(usize, Vec<Pair>)> {
         let start = line.rfind(char::is_whitespace).map(|i| i + 1).unwrap_or(0);
         let current_word = &line[start..];
-        let matches = self.builtin_commands.iter().filter(|cmd| cmd.starts_with(current_word)).map(|cmd| {Pair{display: cmd.clone(), replacement: cmd.clone()}}).collect();
+        let matches = self.builtin_commands.iter().filter(|cmd| cmd.starts_with(current_word)).map(|cmd| {Pair{display: cmd.clone(), replacement: cmd.clone() + " "}}).collect();
         Ok((start, matches))
     }
 
     fn update(&self, line: &mut LineBuffer, _start: usize, elected: &str, cl: &mut Changeset) {
-        line.update(elected, elected.len(), cl)
+        let elected = elected;
+        line.update(&elected, elected.len(), cl)
     }
 }
 
