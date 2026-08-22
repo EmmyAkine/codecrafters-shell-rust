@@ -1,8 +1,9 @@
-
+use std::collections::HashSet;
 use std::env;
 use std::path::{Path};
 #[allow(unused_imports)]
 use std::fs;
+use walkdir::WalkDir;
 
 #[derive(Clone)]
 pub struct PathResolver{
@@ -85,5 +86,21 @@ impl PathResolver{
         None
     }
 
+    pub fn get_all_executables(&self) -> HashSet<String> {
+        let mut executables:HashSet<String> = HashSet::new();
+        for dir in self.directories.iter() {
+            for entry in WalkDir::new(dir).max_depth(1).into_iter().filter_map(|e| e.ok()) {
+                if entry.file_type().is_file() {
+                    match Self::is_executable(entry.path()) {
+                        None => {}
+                        Some(_) => {
+                            executables.insert(entry.file_name().to_str().unwrap().to_string());
+                        }
+                    }
+                }
+            }
 
+        }
+        executables
+    }
 }

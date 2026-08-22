@@ -18,12 +18,14 @@ impl Shell {
     pub fn run(&self) {
         let path_resolver = PathResolver::new_from_environment();
         let external_commands = ExternalCommand::new(path_resolver.clone());
+        let executable_cache = path_resolver.get_all_executables();
+        println!("Executing commands: {:?}", executable_cache);
         let builtins = Self::build_builtins(path_resolver);
         let dispatcher = CommandDispatcher::new(builtins.0, external_commands);
-        Self::run_loop(dispatcher, builtins.1);
+        Self::run_loop(dispatcher, builtins.1, executable_cache);
     }
 
-    fn build_builtins(resolver: PathResolver) -> (HashMap<String, Box<dyn Command>>, Vec<String>) {
+    fn build_builtins(resolver: PathResolver) -> (HashMap<String, Box<dyn Command>>, HashSet<String>) {
         let mut builtins_dict: HashMap<String, Box<dyn Command>> = HashMap::new();
         let mut builtins_list: HashSet<String> = HashSet::new();
 
@@ -55,10 +57,10 @@ impl Shell {
         (builtins_dict, builtins_list.into_iter().collect())
     }
 
-    fn run_loop(dispatcher: CommandDispatcher, builtin_commands: Vec<String>) {
+    fn run_loop(dispatcher: CommandDispatcher, builtin_commands: HashSet<String>, path_executables: HashSet<String>) {
 
         let mut readline = Editor::new().unwrap();
-        readline.set_helper(Some(Completion{builtin_commands}));
+        readline.set_helper(Some(Completion{builtin_commands, path_executables}));
         loop {
             let input = readline.readline("$ ");
             match input {
