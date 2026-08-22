@@ -19,7 +19,6 @@ impl Shell {
         let path_resolver = PathResolver::new_from_environment();
         let external_commands = ExternalCommand::new(path_resolver.clone());
         let executable_cache = path_resolver.get_all_executables();
-        println!("Executing commands: {:?}", executable_cache);
         let builtins = Self::build_builtins(path_resolver);
         let dispatcher = CommandDispatcher::new(builtins.0, external_commands);
         Self::run_loop(dispatcher, builtins.1, executable_cache);
