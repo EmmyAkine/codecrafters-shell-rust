@@ -26,8 +26,12 @@ impl Completer for Completion{
     fn complete(&self, line: &str, _pos: usize, _ctx    : &Context<'_>) -> Result<(usize, Vec<Pair>)> {
         let start = line.rfind(char::is_whitespace).map(|i| i + 1).unwrap_or(0);
         let current_word = &line[start..];
-        let matches:Vec<Pair> = self.builtin_commands.iter().chain(self.path_executables.iter()).filter(|cmd| cmd.starts_with(current_word)).map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
+        let matches:Vec<Pair> = self.builtin_commands.iter().filter(|cmd| cmd.starts_with(current_word)).map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
 
+        if matches.len() <= 0 {
+            #[allow(unused)]
+            let matches:Vec<Pair> = self.path_executables.iter().filter(|cmd| cmd.starts_with(current_word)).map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
+        }
         match matches.len() {
             0 => {
                 Self::ring_bell();
