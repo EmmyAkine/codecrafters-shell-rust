@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashSet};
 use rustyline::{Changeset, Context, Helper, Result};
 use rustyline::completion::{Completer, Pair};
 use rustyline::highlight::Highlighter;
@@ -26,11 +26,10 @@ impl Completer for Completion{
     fn complete(&self, line: &str, _pos: usize, _ctx    : &Context<'_>) -> Result<(usize, Vec<Pair>)> {
         let start = line.rfind(char::is_whitespace).map(|i| i + 1).unwrap_or(0);
         let current_word = &line[start..];
-        let mut matches:Vec<Pair> = self.builtin_commands.iter().filter(|cmd| cmd.starts_with(current_word)).map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
 
-        if matches.len() <= 0 {
-            matches = self.path_executables.iter().filter(|cmd| cmd.starts_with(current_word)).map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
-        }
+        let unique_matches:BTreeSet<&String> = self.builtin_commands.iter().chain(self.path_executables.iter()).filter(|cmd| cmd.starts_with(current_word)).collect();
+        let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
+        
         match matches.len() {
             0 => {
                 Self::ring_bell();
