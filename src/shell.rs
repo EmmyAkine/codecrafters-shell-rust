@@ -59,7 +59,7 @@ impl Shell {
     fn run_loop(dispatcher: CommandDispatcher, builtin_commands: HashSet<String>, path_executables: HashSet<String>) {
 
         let mut readline = Editor::new().unwrap();
-        readline.set_helper(Some(Completion{builtin_commands, path_executables}));
+        readline.set_helper(Some(Completion::new(builtin_commands, path_executables)));
         loop {
             let input = readline.readline("$ ");
             match input {
