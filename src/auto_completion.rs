@@ -32,16 +32,19 @@ impl Completer for Completion{
         //Collect and store lcp value early
         let lcp = self.longest_common_prefix(&unique_matches);
 
-        let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
-        
-        match matches.len() {
+        match unique_matches.len() {
             0 => {
                 Self::ring_bell();
-                Ok((start, matches))
+                Ok((start, vec![]))
             },
-            1 => Ok((start, matches)),
+            1 => {
+                let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
+                Ok((start, matches))
+            }
             _ => {
                 if lcp.trim_end().trim_end_matches('/') != current_word.trim_end().trim_end_matches('/')  {
+                    let matches = vec![Pair { display: lcp.clone(), replacement: lcp,
+                    }];
                     return Ok((start, matches));
                 }
                 let mut state = self.tab_state.borrow_mut();
@@ -62,11 +65,10 @@ impl Completer for Completion{
                     // Tab 2: Reset count, print sorted list manually, and return empty candidates
                     state.count = 0;
 
-                    //Unzip pair
-                    let (sorted_matches, _):(Vec<String>, Vec<String>) = matches.into_iter().map(|p| (p.display, p.replacement)).unzip();
+                    let formated_matches = unique_matches.into_iter().map(|s| s.as_str() ).collect::<Vec<&str>>().join("  ");
 
                     // Print matches on a new line
-                    print!("\n{}\n", sorted_matches.join("  "));
+                    print!("\n{}\n", formated_matches);
                     use std::io::Write;
                     let _ = std::io::stdout().flush();
 
