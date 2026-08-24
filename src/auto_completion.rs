@@ -28,6 +28,10 @@ impl Completer for Completion{
         let current_word = &line[start..];
 
         let unique_matches:BTreeSet<&String> = self.builtin_commands.iter().chain(self.path_executables.iter()).filter(|cmd| cmd.starts_with(current_word)).collect();
+
+        //Collect and store lcp value early
+        let lcp = self.longest_common_prefix(&unique_matches);
+
         let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
         
         match matches.len() {
@@ -37,11 +41,15 @@ impl Completer for Completion{
             },
             1 => Ok((start, matches)),
             _ => {
+                if lcp.trim_end().trim_end_matches('/') != current_word.trim_end().trim_end_matches('/')  {
+                    return Ok((start, matches));
+                }
                 let mut state = self.tab_state.borrow_mut();
                 if state.last_line == current_word {
                     // Consecutive tab on the same prefix
                     state.count += 1;
-                } else {
+                }
+                else {
                     // First tab on a new or modified prefix
                     state.last_line = current_word.to_string();
                     state.count = 1;
@@ -49,13 +57,13 @@ impl Completer for Completion{
                 if state.count == 1 {
                     Self::ring_bell();
                     Ok((0, Vec::new()))
-                } else {
+                }
+                else {
                     // Tab 2: Reset count, print sorted list manually, and return empty candidates
                     state.count = 0;
 
-                    //Unzip pair into a list and sort
-                    let  (mut sorted_matches, _):(Vec<String>, Vec<String>) = matches.into_iter().map(|p| (p.display, p.replacement)).unzip();
-                    sorted_matches.sort();
+                    //Unzip pair
+                    let (sorted_matches, _):(Vec<String>, Vec<String>) = matches.into_iter().map(|p| (p.display, p.replacement)).unzip();
 
                     // Print matches on a new line
                     print!("\n{}\n", sorted_matches.join("  "));
@@ -92,6 +100,48 @@ impl Completion {
         use std::io::Write;
         print!("\x07");
         let _ = std::io::stdout().flush();
+    }
+
+ /*   fn longest_common_prefix(words: &[String]) -> String {
+        if words.is_empty() {
+            return String::new();
+        }
+
+        let first = &words[0];
+        let mut len = first.len();
+
+        for s in &words[1..] {
+            while !s.starts_with(&first[..len]) {
+                len -= 1;
+                if len == 0 {
+                    return String::new();
+                }
+            }
+        }
+
+        first[..len].to_string()
+    }*/
+
+    /*fn longest_common_prefix<'a, StringCollections>(&self, s: StringCollections) -> String
+        where StringCollections: IntoIterator<Item=&'a String> {
+        TODO!()
+    }*/
+
+    fn longest_common_prefix(&self, matches: &BTreeSet<&String>) -> String {
+        if matches.len() <= 0 {
+            return "".to_string();
+        }
+        let lcp = matches.first().unwrap();
+        let mut len = lcp.len();
+        for val in matches.iter().skip(1) {
+            while !val.trim().starts_with(&*lcp.trim()) {
+                len -= 1;
+                if len == 0 {
+                    return "".to_string();
+                }
+            }
+        }
+        lcp[..len].to_string()
     }
 
 }
