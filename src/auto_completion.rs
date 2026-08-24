@@ -135,7 +135,9 @@ impl Completion {
         let lcp = matches.first().unwrap();
         let mut len = lcp.len();
         for val in matches.iter().skip(1) {
-            while !val.trim().starts_with(&*lcp.trim()) {
+            while !val.trim().starts_with(&lcp.trim()[..len]) {
+                #[allow(unused)]
+                let x = &lcp.trim()[..len];
                 len -= 1;
                 if len == 0 {
                     return "".to_string();
