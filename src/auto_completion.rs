@@ -42,7 +42,7 @@ impl Completer for Completion{
                 Ok((start, matches))
             }
             _ => {
-                if lcp.trim_end().trim_end_matches('/') != current_word.trim_end().trim_end_matches('/')  {
+                if lcp.trim_end().trim_end_matches('/') != current_word.trim_end().trim_end_matches('/') && !lcp.is_empty()  {
                     let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{}", cmd)}}).collect();
                     return Ok((start, matches));
                 }
