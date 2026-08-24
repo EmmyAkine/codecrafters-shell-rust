@@ -43,8 +43,7 @@ impl Completer for Completion{
             }
             _ => {
                 if lcp.trim_end().trim_end_matches('/') != current_word.trim_end().trim_end_matches('/')  {
-                    let matches = vec![Pair { display: lcp.clone(), replacement: lcp,
-                    }];
+                    let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{}", cmd)}}).collect();
                     return Ok((start, matches));
                 }
                 let mut state = self.tab_state.borrow_mut();
