@@ -37,7 +37,7 @@ impl Completer for Completion{
 
         let unique_matches:BTreeSet<String>;
         if is_command_completion {
-            unique_matches = self.builtin_commands.iter().chain(self.path_executables.iter()).filter(|cmd| cmd.starts_with(current_word)).cloned().collect();
+            unique_matches = self.builtin_commands.iter().chain(self.path_executables.iter()).filter(|cmd| cmd.starts_with(current_word)).cloned().map(|word| format!("{} ", word)).collect();
         }
         else {
             unique_matches = self.get_files_and_directories(current_word);
@@ -54,12 +54,12 @@ impl Completer for Completion{
                 Ok((start, vec![]))
             },
             1 => {
-                let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{} ", cmd)}}).collect();
+                let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{}", cmd)}}).collect();
                 Ok((start, matches))
             }
             _ => {
                 if lcp.trim_end().trim_end_matches('/') != current_word.trim_end().trim_end_matches('/') && !lcp.is_empty()  {
-                    let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{}", cmd)}}).collect();
+                    let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: cmd.trim_end().to_owned()}}).collect();
                     return Ok((start, matches));
                 }
                 let mut state = self.tab_state.borrow_mut();
@@ -213,7 +213,7 @@ impl Completion {
             for entry in entries.flatten() {
                 let file_name = entry.file_name().to_string_lossy().into_owned();
                 let is_dir = entry.file_type().map_or(false, |ft| ft.is_dir());
-                let suffix = if is_dir { "/" } else { "" };
+                let suffix = if is_dir { "/" } else { " " };
 
                 match_values.insert(format!("{}{}{}", parent_str, file_name, suffix));
             }
@@ -226,7 +226,7 @@ impl Completion {
             let file_name = entry.file_name().to_string_lossy().into_owned();
             if file_name.starts_with(target.as_ref()) {
                 let is_dir = entry.file_type().map_or(false, |ft| ft.is_dir());
-                let suffix = if is_dir { "/" } else { "" };
+                let suffix = if is_dir { "/" } else { " " };
 
                 match_values.insert(format!("{}{}{}", parent_str, file_name, suffix));
             }
