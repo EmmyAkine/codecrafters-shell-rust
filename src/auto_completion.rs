@@ -168,10 +168,22 @@ impl Completion {
         use std::fs;
         use std::env;
 
-        let new_path = Path::new(text);
-        let (dir_path, parent_str) = match new_path.parent() {
-            Some(p) if !p.as_os_str().is_empty() => {
-                if p.exists(){
+        let has_trailing_slash = text.ends_with('/') || text.ends_with('\\');
+
+        let (dir_part, parent_str, file_part) = if has_trailing_slash {
+            let p = Path::new(text);
+            let absolute_dir = if p.is_absolute() {
+                p.to_path_buf()
+            } else {
+                env::current_dir().unwrap().join(p)
+            };
+            (absolute_dir, text.to_string(), None)
+        }
+        else {
+            // e.g. "app/grape" -> dir is "app", parent_str is "app/", file_part is Some("grape")
+            let new_path = Path::new(text);
+            let (dir, p_str) = match new_path.parent() {
+                Some(p) if !p.as_os_str().is_empty() => {
                     let p_str = p.to_string_lossy();
                     let prefix = if p_str.ends_with('/') || p_str.ends_with('\\') {
                         p_str.into_owned()
@@ -180,19 +192,20 @@ impl Completion {
                     };
                     (env::current_dir().unwrap().join(p), prefix)
                 }
-                else {
-                    Self::ring_bell();
-                    return BTreeSet::new();
-                }
-            },
-            _ => {
-                (env::current_dir().unwrap(), String::new())
-            }
+                _ => (env::current_dir().unwrap(), String::new()),
+            };
+            (dir, p_str, new_path.file_name())
         };
-        let file_part = new_path.file_name();
+
+        // If directory doesn't exist, bell and return
+        if !dir_part.exists() {
+            Self::ring_bell();
+            return BTreeSet::new();
+        }
+
         let mut match_values: BTreeSet<String> = BTreeSet::new();
 
-        let entries = match fs::read_dir(&dir_path) {
+        let entries = match fs::read_dir(&dir_part) {
             Ok(e) => e,
             Err(_) => return match_values,
         };
