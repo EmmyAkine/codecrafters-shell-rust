@@ -23,11 +23,27 @@ struct TabState {
 impl Completer for Completion{
     type Candidate = Pair;
 
-    fn complete(&self, line: &str, _pos: usize, _ctx    : &Context<'_>) -> Result<(usize, Vec<Pair>)> {
-        let start = line.rfind(char::is_whitespace).map(|i| i + 1).unwrap_or(0);
-        let current_word = &line[start..];
+    fn complete(&self, line: &str, _pos: usize, _ctx : &Context<'_>) -> Result<(usize, Vec<Pair>)> {
 
-        let unique_matches:BTreeSet<&String> = self.builtin_commands.iter().chain(self.path_executables.iter()).filter(|cmd| cmd.starts_with(current_word)).collect();
+        /*let start = line.rfind(char::is_whitespace).map(|i| i + 1).unwrap_or(0);
+        let current_word = &line[start..];
+        let tokens = line.split_whitespace().collect::<Vec<_>>();
+        let last_token = &tokens[tokens.len() - 1];
+        let command = tokens[0];*/
+        if line.trim().is_empty() { return Ok((0, vec![])) }
+        let start = line[.._pos].rfind(char::is_whitespace).map_or(0, |i| i + 1);
+        let current_word = &line[start.._pos];
+        let is_command_completion = line[..start].trim().is_empty();
+
+        let unique_matches:BTreeSet<String>;
+        if is_command_completion {
+            unique_matches = self.builtin_commands.iter().chain(self.path_executables.iter()).filter(|cmd| cmd.starts_with(current_word)).cloned().collect();
+        }
+        else {
+            unique_matches = self.get_files_and_directories(current_word);
+        }
+
+
 
         //Collect and store lcp value early
         let lcp = self.longest_common_prefix(&unique_matches);
@@ -58,13 +74,13 @@ impl Completer for Completion{
                 }
                 if state.count == 1 {
                     Self::ring_bell();
-                    Ok((0, Vec::new()))
+                    Ok((start, Vec::new()))
                 }
                 else {
                     // Tab 2: Reset count, print sorted list manually, and return empty candidates
                     state.count = 0;
 
-                    let formated_matches = unique_matches.into_iter().map(|s| s.as_str() ).collect::<Vec<&str>>().join("  ");
+                    let formated_matches: String = unique_matches.into_iter().collect::<Vec<_>>().join("  ");
 
                     // Print matches on a new line
                     print!("\n{}\n", formated_matches);
@@ -78,14 +94,14 @@ impl Completer for Completion{
                         replacement: current_word.to_string(),
                     }];
 
-                    Ok((0, refresh_pair))
+                    Ok((start, refresh_pair))
                 }
             }
         }
     }
 
-    fn update(&self, line: &mut LineBuffer, _start: usize, elected: &str, cl: &mut Changeset) {
-        line.update(elected, elected.len(), cl)
+    fn update(&self, line: &mut LineBuffer, start: usize, elected: &str, cl: &mut Changeset) {
+        line.replace(start..line.pos(), elected, cl);
     }
 }
 
@@ -128,7 +144,7 @@ impl Completion {
         TODO!()
     }*/
 
-    fn longest_common_prefix(&self, matches: &BTreeSet<&String>) -> String {
+    fn longest_common_prefix(&self, matches: &BTreeSet<String>) -> String {
         if matches.len() <= 0 {
             return "".to_string();
         }
@@ -145,6 +161,64 @@ impl Completion {
             }
         }
         lcp[..len].to_string()
+    }
+
+    fn get_files_and_directories(&self, text: &str) -> BTreeSet<String> {
+        use std::path::Path;
+        use std::fs;
+        use std::env;
+
+        let new_path = Path::new(text);
+        let (dir_path, parent_str) = match new_path.parent() {
+            Some(p) if !p.as_os_str().is_empty() => {
+                if p.exists(){
+                    let p_str = p.to_string_lossy();
+                    let prefix = if p_str.ends_with('/') || p_str.ends_with('\\') {
+                        p_str.into_owned()
+                    } else {
+                        format!("{}/", p_str)
+                    };
+                    (env::current_dir().unwrap().join(p), prefix)
+                }
+                else {
+                    Self::ring_bell();
+                    return BTreeSet::new();
+                }
+            },
+            _ => {
+                (env::current_dir().unwrap(), String::new())
+            }
+        };
+        let file_part = new_path.file_name();
+        let mut match_values: BTreeSet<String> = BTreeSet::new();
+
+        let entries = match fs::read_dir(&dir_path) {
+            Ok(e) => e,
+            Err(_) => return match_values,
+        };
+        if file_part.is_none() {
+            for entry in entries.flatten() {
+                let file_name = entry.file_name().to_string_lossy().into_owned();
+                let is_dir = entry.file_type().map_or(false, |ft| ft.is_dir());
+                let suffix = if is_dir { "/" } else { "" };
+
+                match_values.insert(format!("{}{}{}", parent_str, file_name, suffix));
+            }
+            return match_values;
+        }
+
+
+        let target = file_part.unwrap().to_string_lossy();
+        for entry in entries.flatten(){
+            let file_name = entry.file_name().to_string_lossy().into_owned();
+            if file_name.starts_with(target.as_ref()) {
+                let is_dir = entry.file_type().map_or(false, |ft| ft.is_dir());
+                let suffix = if is_dir { "/" } else { "" };
+
+                match_values.insert(format!("{}{}{}", parent_str, file_name, suffix));
+            }
+        }
+        match_values
     }
 
 }
