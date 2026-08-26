@@ -9,7 +9,7 @@ use crate::command_dispatcher::CommandDispatcher;
 use crate::external_command::ExternalCommand;
 use crate::path_resolver::PathResolver;
 use rustyline::error::ReadlineError;
-use rustyline::Editor;
+use rustyline::{CompletionType, Config, Editor};
 use std::collections::{HashMap, HashSet};
 
 pub struct Shell{}
@@ -58,7 +58,8 @@ impl Shell {
 
     fn run_loop(dispatcher: CommandDispatcher, builtin_commands: HashSet<String>, path_executables: HashSet<String>) {
 
-        let mut readline = Editor::new().unwrap();
+        let config = Config::builder().completion_type(CompletionType::List).build();
+        let mut readline = Editor::with_config(config).unwrap();
         readline.set_helper(Some(Completion::new(builtin_commands, path_executables)));
         loop {
             let input = readline.readline("$ ");

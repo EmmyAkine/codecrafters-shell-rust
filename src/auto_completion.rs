@@ -54,6 +54,10 @@ impl Completer for Completion{
                 Ok((start, vec![]))
             },
             1 => {
+                let mut state = self.tab_state.borrow_mut();
+                state.count = 0;
+                state.last_line.clear();
+
                 let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: format!("{}", cmd)}}).collect();
                 Ok((start, matches))
             }
@@ -151,9 +155,9 @@ impl Completion {
         let lcp = matches.first().unwrap();
         let mut len = lcp.len();
         for val in matches.iter().skip(1) {
-            while !val.trim().starts_with(&lcp.trim()[..len]) {
+            while !val.trim().starts_with(&lcp.trim()[..len - 1]) {
                 #[allow(unused)]
-                let x = &lcp.trim()[..len];
+                let x = &lcp.trim()[..len - 1];
                 len -= 1;
                 if len == 0 {
                     return "".to_string();
