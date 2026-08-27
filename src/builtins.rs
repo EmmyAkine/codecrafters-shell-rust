@@ -5,6 +5,7 @@ pub mod echo;
 pub mod type_cmd;
 pub mod pwd;
 pub mod cd_cmd;
+pub mod complete;
 
 pub trait Command {
     fn get_name_copy(&self) -> String;

@@ -43,8 +43,6 @@ impl Completer for Completion{
             unique_matches = self.get_files_and_directories(current_word);
         }
 
-
-
         //Collect and store lcp value early
         let lcp = self.longest_common_prefix(&unique_matches);
 
@@ -184,7 +182,6 @@ impl Completion {
             (absolute_dir, text.to_string(), None)
         }
         else {
-            // e.g. "app/grape" -> dir is "app", parent_str is "app/", file_part is Some("grape")
             let new_path = Path::new(text);
             let (dir, p_str) = match new_path.parent() {
                 Some(p) if !p.as_os_str().is_empty() => {
@@ -201,7 +198,6 @@ impl Completion {
             (dir, p_str, new_path.file_name())
         };
 
-        // If directory doesn't exist, bell and return
         if !dir_part.exists() {
             Self::ring_bell();
             return BTreeSet::new();
