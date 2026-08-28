@@ -168,7 +168,7 @@ impl Completion {
 
     fn run_completer_script(&self, full_text: &str, path: &str, cursor_point: usize, args1: String, args2: String, args3: String)
     -> BTreeSet<String> {
-       use std::process::{Command, Stdio};
+       use std::process::Command;
 
         let process_output = match Command::new(path)
             .args(vec![args1, args2, args3])
