@@ -166,7 +166,6 @@ impl Completion {
         match_values
     }
 
-    #[allow(unused)]
     fn run_completer_script(&self, full_text: &str, path: &str, cursor_point: usize, args1: String, args2: String, args3: String)
     -> BTreeSet<String> {
        use std::process::{Command, Stdio};
@@ -217,8 +216,8 @@ impl Completion {
             }
             _ => {
                 if lcp.trim_end().trim_end_matches('/') != current_word.trim_end().trim_end_matches('/') && !lcp.is_empty()  {
-                    //let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: cmd.trim_end().to_owned()}}).collect();
-                    let matches = vec![Pair {display: lcp.trim_end().to_string(), replacement: lcp.to_string()}];
+                    let matches:Vec<Pair> = unique_matches.into_iter().map(|cmd| {Pair{display: cmd.to_string(), replacement: cmd.trim_end().to_owned()}}).collect();
+                    //let matches = vec![Pair {display: lcp.trim_end().to_string(), replacement: lcp.to_string()}];
                     return Ok((start, matches));
                 }
                 let mut state = self.tab_state.borrow_mut();
