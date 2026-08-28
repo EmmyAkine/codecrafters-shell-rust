@@ -23,13 +23,15 @@ impl ExternalCommand{
         let stdout = Self::stdio_for(&redirect.stdout_file, redirect.stdout_append);
         let stderr = Self::stdio_for(&redirect.stderr_file, redirect.stderr_append);
 
-        Command::new(command)
+        Command::new(command.clone())
             .args(args)
             .stdout(stdout)
             .stderr(stderr)
             .status()
-            .expect("failed to execute process");
-
+            .unwrap_or_else(|err| {
+                eprintln!("[shell_err]: {}: {}", command, err);
+                Default::default()
+            });
         true
     }
 
